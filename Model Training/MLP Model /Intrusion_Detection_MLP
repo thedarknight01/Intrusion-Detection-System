@@ -1,0 +1,140 @@
+# 1. Import Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import classification_report, confusion_matrix
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Input
+
+# 2. Data Loading
+
+print("Loading data...")
+try:
+    train_df = pd.read_csv("KDDTrain+.txt", header=None)
+    test_df  = pd.read_csv("KDDTest+.txt", header=None)
+    print("Train shape:", train_df.shape)
+    print("Test shape:", test_df.shape)
+except FileNotFoundError:
+    print("Error: Make sure 'KDDTrain+.txt' and 'KDDTest+.txt' are in the same folder as the script.")
+    exit()
+
+# 3. Feature and Column Naming
+columns = [
+    "duration","protocol_type","service","flag","src_bytes","dst_bytes","land",
+    "wrong_fragment","urgent","hot","num_failed_logins","logged_in","num_compromised",
+    "root_shell","su_attempted","num_root","num_file_creations","num_shells","num_access_files",
+    "num_outbound_cmds","is_host_login","is_guest_login","count","srv_count","serror_rate",
+    "srv_serror_rate","rerror_rate","srv_rerror_rate","same_srv_rate","diff_srv_rate",
+    "srv_diff_host_rate","dst_host_count","dst_host_srv_count","dst_host_same_srv_rate",
+    "dst_host_diff_srv_rate","dst_host_same_src_port_rate","dst_host_srv_diff_host_rate",
+    "dst_host_serror_rate","dst_host_srv_serror_rate","dst_host_rerror_rate","dst_host_srv_rerror_rate",
+    "label","difficulty_level"
+]
+train_df.columns = columns
+test_df.columns = columns
+
+# 4. Data Preprocessing
+print("Preprocessing data...")
+# Map attacks to broader categories
+attack_map = {
+    'normal': 'normal',
+    # DOS
+    'neptune': 'dos','smurf': 'dos','back': 'dos','teardrop': 'dos','pod': 'dos','land': 'dos',
+    'apache2':'dos','udpstorm':'dos','processtable':'dos','worm':'dos','mailbomb': 'dos',
+    # Probe
+    'satan':'probe','ipsweep':'probe','nmap':'probe','portsweep':'probe','mscan':'probe','saint':'probe',
+    # R2L
+    'guess_passwd':'r2l','ftp_write':'r2l','imap':'r2l','phf':'r2l','multihop':'r2l','warezmaster':'r2l',
+    'warezclient':'r2l','spy':'r2l','xlock':'r2l','xsnoop':'r2l','snmpguess':'r2l','snmpgetattack':'r2l',
+    'httptunnel':'r2l','sendmail':'r2l','named':'r2l',
+    # U2R
+    'buffer_overflow':'u2r','loadmodule':'u2r','rootkit':'u2r','perl':'u2r','sqlattack':'u2r',
+    'xterm':'u2r','ps':'u2r',
+}
+train_df['attack_category'] = train_df['label'].map(attack_map)
+test_df['attack_category']  = test_df['label'].map(attack_map)
+
+# Encode categorical text data to numerical data
+categorical_cols = ["protocol_type", "service", "flag"]
+for col in categorical_cols:
+    encoder = LabelEncoder()
+    train_df[col] = encoder.fit_transform(train_df[col])
+    # Use the same encoder to transform the test set
+    test_df[col] = encoder.transform(test_df[col])
+
+# Prepare training and testing sets
+X_train = train_df.drop(columns=['label', 'difficulty_level', 'attack_category'])
+X_test  = test_df.drop(columns=['label', 'difficulty_level', 'attack_category'])
+y_train = train_df['attack_category']
+y_test  = test_df['attack_category']
+
+# Scale numerical features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test  = scaler.transform(X_test)
+
+# One-hot encode the target labels
+label_enc = LabelEncoder()
+y_train_enc = label_enc.fit_transform(y_train)
+y_test_enc  = label_enc.transform(y_test)
+y_train_cat = to_categorical(y_train_enc)
+y_test_cat  = to_categorical(y_test_enc)
+
+# 5. Build the Neural Network Model
+print("Building the model...")
+input_dim = X_train.shape[1]
+num_classes = y_train_cat.shape[1]
+
+mlp_model = Sequential([
+    Input(shape=(input_dim,)),
+    Dense(128, activation='relu'),
+    Dropout(0.3),
+    Dense(64, activation='relu'),
+    Dropout(0.3),
+    Dense(num_classes, activation='softmax')
+])
+
+# Compile the model
+mlp_model.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+mlp_model.summary()
+
+# 6. Train the Model
+print("Training the model...")
+history = mlp_model.fit(
+    X_train, y_train_cat,
+    epochs=20,
+    batch_size=128,
+    validation_data=(X_test, y_test_cat),
+    verbose=1
+)
+
+# 7. Evaluate the Model
+print("Evaluating the model...")
+# Get predictions
+y_pred = mlp_model.predict(X_test)
+y_pred_classes = np.argmax(y_pred, axis=1)
+y_true = np.argmax(y_test_cat, axis=1)
+
+# Print classification report
+print("\nClassification Report:\n")
+print(classification_report(y_true, y_pred_classes, target_names=label_enc.classes_))
+
+# Generate and save the confusion matrix plot
+print("Generating confusion matrix plot...")
+cm = confusion_matrix(y_true, y_pred_classes)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+            xticklabels=label_enc.classes_,
+            yticklabels=label_enc.classes_)
+plt.xlabel("Predicted")
+plt.ylabel("True")
+plt.title("Confusion Matrix")
+
