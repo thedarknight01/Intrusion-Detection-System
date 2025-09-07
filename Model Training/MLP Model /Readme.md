@@ -1,31 +1,23 @@
 # Intrusion Detection System using a Multi-Layer Perceptron (MLP)
 This project implements a neural network model to detect and classify network intrusions from the NSL-KDD dataset. The model is a Multi-Layer Perceptron (MLP) built with TensorFlow and Keras.
-### Model Summary  
-<img width="594" height="319" alt="image" src="https://github.com/user-attachments/assets/1f64da65-2568-4471-8c90-9874c08bc25e" />
-### Confusion Matrix
-<img width="585" height="509" alt="Screenshot 2025-09-07 235828" src="https://github.com/user-attachments/assets/025f4145-34cf-44ec-96b7-da61325e38bf" />
 
 ## 📋 Project Overview
 The goal of this project is to build a robust classifier that can distinguish between normal network traffic and various types of cyber attacks. The script performs the following key tasks:
 
-Data Loading: Ingests the NSL-KDD training and testing datasets.
-
-Preprocessing: Cleans and prepares the data by encoding categorical features and scaling numerical values.
-
-Model Building: Constructs a Sequential MLP model using Keras.
-
-Training: Trains the model on the preprocessed training data.
-
-Evaluation: Assesses the model's performance on the test set and generates a classification report and a confusion matrix.
+- Data Loading: Ingests the NSL-KDD training and testing datasets.
+- Preprocessing: Cleans and prepares the data by encoding categorical features and scaling numerical values.
+- Model Building: Constructs a Sequential MLP model using Keras.
+- Training: Trains the model on the preprocessed training data.
+- Evaluation: Assesses the model's performance on the test set and generates a classification report and a confusion matrix.
 
 ## 💾 Dataset
+
 This model is trained on the NSL-KDD Dataset, a benchmark dataset for intrusion detection research.
+###### Link : [NSL-KDD](https://www.kaggle.com/datasets/hassan06/nslkdd)
+- KDDTrain+.txt: The training dataset.
+- KDDTest+.txt: The testing dataset.
 
-KDDTrain+.txt: The training dataset.
-
-KDDTest+.txt: The testing dataset.
-
-Both files are included in this directory for easy setup and execution.
+  _Both files are included in this directory for easy setup and execution._
 
 ## 📂 File Structure
 The project directory is structured as follows:
@@ -40,8 +32,8 @@ The project directory is structured as follows:
 Follow these instructions to set up and run the project on your local machine.
 
 ### Prerequisites
-Python 3.8 or newer
-pip (Python package installer)
+- Python 3.8 or newer
+- pip (Python package installer)
 
 ### Installation & Setup
 Clone the repository:
@@ -66,5 +58,30 @@ Console Output: You will see the model's summary, training progress for 20 epoch
 
 Confusion Matrix Image: A file named confusion_matrix.png will be saved in the directory. This image visually represents the model's performance in classifying the different attack types.
 
+## Outcome 
+
+### Model Summary  -
+<img width="594" height="319" alt="image" src="https://github.com/user-attachments/assets/1f64da65-2568-4471-8c90-9874c08bc25e" />
+
+### Confusion Matrix -
+<img width="585" height="509" alt="Screenshot 2025-09-07 235828" src="https://github.com/user-attachments/assets/025f4145-34cf-44ec-96b7-da61325e38bf" />
+
+## Conclusion
+
+DoS → Precision 0.95, Recall 0.77
+→ The model is very confident when it says “DoS,” but it still misses some.
+
+Normal → Recall 0.98
+→ Almost all normal traffic is caught, but precision is only 0.65 (lots of false alarms).
+
+Probe → Moderate results (F1 ~0.70).
+
+R2L → Precision 0.91 but Recall 0.01 
+→ The model almost never detects R2L attacks.
+
+U2R → Precision decent (0.78) but Recall 0.31.
+→ Again, it misses most of these rare attacks
+
+This model is failed for R2L and U2R .
 
 
