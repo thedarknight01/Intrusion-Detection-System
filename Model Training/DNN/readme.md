@@ -82,3 +82,21 @@ scikit-learn
 joblib
 numpy
 ```
+
+## 📊 Performance
+
+The model performs well in classifying different types of network traffic. The training history and classification performance on the test set are visualized below.
+
+### Model Accuracy & Loss
+
+The following graph shows the model's accuracy and loss convergence over the training epochs. The `EarlyStopping` callback ensures the model stops training when the validation loss no longer improves, preventing overfitting.
+
+![Model Performance Plots](<img width="769" height="319" alt="Acc_Los" src="https://github.com/user-attachments/assets/879db34b-917f-4c19-8b2b-e2eb00fa15e4" />
+)
+
+### Confusion Matrix
+
+The confusion matrix provides a detailed look at the model's performance for each class. The diagonal elements represent the number of points for which the predicted label is equal to the true label, while off-diagonal elements are those that are mislabeled by the classifier.
+
+![Confusion Matrix](<img width="654" height="562" alt="Confu" src="https://github.com/user-attachments/assets/320a9dbd-7a2c-4629-a6ed-5dcfe15e628d" />
+)
